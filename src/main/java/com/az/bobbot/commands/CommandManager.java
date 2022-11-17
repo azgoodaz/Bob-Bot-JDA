@@ -54,7 +54,12 @@ public class CommandManager extends ListenerAdapter {
         }
         else if( command.equals("purge"))
         {
-            if (!event.getMember().hasPermission(Permission.MESSAGE_MANAGE))
+            if (event.getMember().hasPermission(Permission.MESSAGE_MANAGE))
+            {
+                event.reply("It's still a work in progress.").setEphemeral(true).queue();
+                return;
+            }
+            else if (!event.getMember().hasPermission(Permission.MESSAGE_MANAGE))
             {
                 event.getChannel().sendMessage("You don't have permission to do this.");
                 return;
@@ -67,9 +72,9 @@ public class CommandManager extends ListenerAdapter {
         List<CommandData> commandData = new ArrayList<>();
 
         // Say
-        OptionData option1 = new OptionData(OptionType.STRING, "message", "Say something", true);
-        OptionData option2 = new OptionData(OptionType.CHANNEL, "channel", "Say something", true).setChannelTypes(ChannelType.TEXT);
-        commandData.add(Commands.slash("say", "Say something").addOptions(option1, option2));
+        OptionData s1 = new OptionData(OptionType.STRING, "message", "Say something", true);
+        OptionData s2 = new OptionData(OptionType.CHANNEL, "channel", "Say something", true).setChannelTypes(ChannelType.TEXT);
+        commandData.add(Commands.slash("say", "Say something").addOptions(s1, s2));
 
         // Misc
         commandData.add(Commands.slash("ping", "Am I alive? Let's check."));
@@ -77,7 +82,9 @@ public class CommandManager extends ListenerAdapter {
         commandData.add(Commands.slash("vanity", "Want to see my Vanity?"));
 
         // Purge
-
+        OptionData p1 = new OptionData(OptionType.CHANNEL, "channel", "Impulse the brain.", true).setChannelTypes(ChannelType.TEXT);
+        OptionData p2 = new OptionData(OptionType.INTEGER, "amount","How much?", true);
+        commandData.add(Commands.slash("purge", "The Neuralyzer").addOptions(p1, p2));
 
         // Command Data Update
         event.getGuild().updateCommands().addCommands(commandData).queue();
