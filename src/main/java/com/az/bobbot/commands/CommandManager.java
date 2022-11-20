@@ -15,11 +15,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class CommandManager extends ListenerAdapter {
-
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+
+        long enable = System.currentTimeMillis();
+
         String command = event.getName();
 
         if ( command.equals("say"))
@@ -40,9 +43,16 @@ public class CommandManager extends ListenerAdapter {
             channel.sendMessage(message).queue();
             event.reply("Message sent.").setEphemeral(true).queue();
         }
+        else if( command.equals("servers"))
+        {
+            if (event.getMember().getId() == ("OWNER"))
+            {
+                event.reply("It's still a work in progress.").setEphemeral(true).queue();
+            }
+        }
         else if( command.equals("ping"))
         {
-            event.reply("Pong.").queue();
+            event.reply("Pong. My ping is: " + TimeUnit.MILLISECONDS.toSeconds((System.currentTimeMillis() - enable)) + "s!").queue();
         }
         else if( command.equals("members"))
         {
@@ -57,12 +67,10 @@ public class CommandManager extends ListenerAdapter {
             if (event.getMember().hasPermission(Permission.MESSAGE_MANAGE))
             {
                 event.reply("It's still a work in progress.").setEphemeral(true).queue();
-                return;
             }
             else if (!event.getMember().hasPermission(Permission.MESSAGE_MANAGE))
             {
                 event.getChannel().sendMessage("You don't have permission to do this.");
-                return;
             }
         }
     }
@@ -73,13 +81,14 @@ public class CommandManager extends ListenerAdapter {
 
         // Say
         OptionData s1 = new OptionData(OptionType.STRING, "message", "Say something", true);
-        OptionData s2 = new OptionData(OptionType.CHANNEL, "channel", "Say something", true).setChannelTypes(ChannelType.TEXT);
+        OptionData s2 = new OptionData(OptionType.CHANNEL, "channel", "Say something").setChannelTypes(ChannelType.TEXT);
         commandData.add(Commands.slash("say", "Say something").addOptions(s1, s2));
 
         // Misc
         commandData.add(Commands.slash("ping", "Am I alive? Let's check."));
         commandData.add(Commands.slash("members", "How popular are we?"));
         commandData.add(Commands.slash("vanity", "Want to see my Vanity?"));
+        commandData.add(Commands.slash("servers", "What servers are we in?"));
 
         // Purge
         OptionData p1 = new OptionData(OptionType.CHANNEL, "channel", "Impulse the brain.", true).setChannelTypes(ChannelType.TEXT);
