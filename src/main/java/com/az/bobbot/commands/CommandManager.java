@@ -18,20 +18,23 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class CommandManager extends ListenerAdapter {
+
+    private Object amount;
+
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 
         long enable = System.currentTimeMillis();
+        OptionMapping messageOption = event.getOption("message");
+        OptionMapping channelOption = event.getOption("channel");
+        OptionMapping amountOption = event.getOption("amount");
+        MessageChannel channel;
 
         String command = event.getName();
 
         if ( command.equals("say"))
         {
-            OptionMapping messageOption = event.getOption("message");
             String message = messageOption.getAsString();
-
-            MessageChannel channel;
-            OptionMapping channelOption = event.getOption("channel");
 
             if (channelOption != null)
             {
@@ -66,11 +69,30 @@ public class CommandManager extends ListenerAdapter {
         {
             if (event.getMember().hasPermission(Permission.MESSAGE_MANAGE))
             {
-                event.reply("It's still a work in progress.").setEphemeral(true).queue();
+                if (channelOption != null)
+                {
+                    channel = channelOption.getAsMessageChannel();
+                } else
+                {
+                    channel = event.getChannel();
+                }
+               if (amountOption.getAsInt() <= 100)
+                {
+                    channelOption.getAsMessageChannel().getHistory();
+
+                    channelOption.getAsMessageChannel().getHistory().retrievePast(amountOption.getAsInt()).queue(messages ->
+                            channelOption.getAsMessageChannel().purgeMessages(messages.stream().toList()).stream());
+                    event.reply("Deleting messages...").setEphemeral(true).queue();
+                }
+               if (amountOption.getAsInt() > 100)
+               {
+                   event.reply("Purge amount is set too high for Discord API. Please lower it.").setEphemeral(true).queue();
+                   return;
+               }
             }
             else if (!event.getMember().hasPermission(Permission.MESSAGE_MANAGE))
             {
-                event.getChannel().sendMessage("You don't have permission to do this.");
+                event.reply("You don't have permission to do this.").setEphemeral(true).queue();
             }
         }
     }
@@ -91,8 +113,8 @@ public class CommandManager extends ListenerAdapter {
         commandData.add(Commands.slash("servers", "What servers are we in?"));
 
         // Purge
-        OptionData p1 = new OptionData(OptionType.CHANNEL, "channel", "Impulse the brain.", true).setChannelTypes(ChannelType.TEXT);
-        OptionData p2 = new OptionData(OptionType.INTEGER, "amount","How much?", true);
+        OptionData p1 = new OptionData(OptionType.INTEGER, "amount","How much?", true);
+        OptionData p2 = new OptionData(OptionType.CHANNEL, "channel", "Impulse the brain.").setChannelTypes(ChannelType.TEXT);
         commandData.add(Commands.slash("purge", "The Neuralyzer").addOptions(p1, p2));
 
         // Command Data Update
